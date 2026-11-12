@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Legacy Challenge Database</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f3f5;--sf:#fff;--ink:#15181e;--mute:#667085;--line:#e1e4ea;--ac:#2d56e0;--acs:#e8edfd;--win:#1b8a57;--loss:#c4403f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12141a;--sf:#1b1e26;--ink:#eceef3;--mute:#9aa2b3;--line:#2b303b;--ac:#7c9bff;--acs:#252c47;--win:#47c98a;--loss:#f0706f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12141a;--sf:#1b1e26;--ink:#eceef3;--mute:#9aa2b3;--line:#2b303b;--ac:#7c9bff;--acs:#252c47;--win:#47c98a;--loss:#f0706f;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{position:relative;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}
+.wrap{max-width:1040px;width:100%;flex:1 0 auto;margin:0 auto;padding:28px 18px 60px;text-align:center}
+body.home .wrap{display:flex;flex-direction:column;justify-content:center;padding-bottom:28px}
+footer{text-align:center;color:var(--mute);font-size:13px;padding:18px 18px 24px}
+footer a{color:inherit;text-decoration:underline}
+h1{font-size:clamp(32px,6.5vw,56px);line-height:1.1;margin:8px 0 14px;letter-spacing:-.025em;text-align:center}
+.sub{color:var(--mute);margin:0 0 22px}
+.search{position:relative;max-width:100%;margin:0 auto}
+input{width:100%;font:inherit;font-size:17px;padding:14px 16px;border:1.5px solid var(--line);border-radius:10px;background:var(--sf);color:var(--ink)}
+input:focus{outline:2px solid var(--ac);outline-offset:1px;border-color:var(--ac)}
+.sug{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--sf);border:1px solid var(--line);border-radius:10px;z-index:5;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.sug button{display:flex;justify-content:space-between;width:100%;padding:10px 16px;border:0;background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.sug{text-align:left}
+.sug button:hover,.sug button.on{background:var(--acs)}
+.sug span{color:var(--mute)}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:12px}
+.chip{border:1px solid var(--line);background:var(--sf);color:var(--ink);padding:6px 12px;border-radius:999px;font:inherit;font-size:14px;cursor:pointer}
+.chip:hover{border-color:var(--ac)}
+.lbl{color:var(--mute);font-size:14px;margin:22px 0 0}
+.who{display:flex;align-items:baseline;justify-content:flex-start;text-align:left;gap:14px;margin:8px 0 22px;flex-wrap:wrap}
+.who h2{margin:0;font-size:clamp(32px,6.5vw,56px);line-height:1.1;letter-spacing:-.025em}
+#clr{position:absolute;top:16px;right:16px;z-index:6;border:0;border-radius:999px;background:#d13b3b;color:#fff;font:inherit;font-size:16px;font-weight:600;padding:11px 26px;cursor:pointer;box-shadow:0 2px 10px rgba(209,59,59,.35)}
+#clr:hover{background:#b92f2f}
+#clr:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+body.view h1,body.view p.sub,body.view .search{display:none}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.st{background:var(--sf);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.st b{display:block;font-size:24px;line-height:1.2}
+.st small{color:var(--mute)}
+h3{font-size:16px;margin:28px 0 10px}
+.box{text-align:left;background:var(--sf);border:1px solid var(--line);border-radius:10px;padding:6px 16px}
+.dk{display:grid;grid-template-columns:minmax(130px,1.3fr) 2fr auto;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.dk:last-child{border:0}
+.bar{height:8px;background:var(--loss);border-radius:4px;overflow:hidden;opacity:.9}
+.bar i{display:block;height:100%;background:var(--win)}
+.dk em{font-style:normal;color:var(--mute);font-size:13px;text-align:right;white-space:nowrap}
+.tw{text-align:left;overflow-x:auto;background:var(--sf);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--mute);font-weight:500;font-size:13px}
+tr:last-child td{border:0}
+.n{text-align:right}
+.dk[data-p],.dk[data-k]{cursor:pointer}
+.dk[data-p]:hover,.dk[data-k]:hover{background:var(--acs)}
+@media (max-width:700px){.wrap{padding-top:68px}}
+.empty{color:var(--mute);padding:40px 0;text-align:center}
+</style></head><body>
+<div class="wrap">
+<h1><span id="tt">Legacy Challenge Database</span></h1>
+<p class="sub"><span id="meta"></span></p>
+<div class="search">
+<input id="q" type="search" placeholder="Search for a player or deck…" autocomplete="off" aria-label="Search for a player or deck">
+<div class="sug" id="sug" hidden></div>
+</div>
+<div id="out"></div>
+</div>
+<footer>Data from the <a href="https://patreon.com/legacydatacollection" target="_blank" rel="noopener">Legacy Data Collection Project</a></footer>
+<script type="application/json" id="d">__DATA__</script>
+<script>
+var D=JSON.parse(document.getElementById('d').textContent),P=D.p,A=D.a,K=D.k,E=D.e,T=D.d,R=D.r;
+var by,low,order,byk,lowk,korder;
+var $=function(i){return document.getElementById(i)},q=$('q'),sug=$('sug'),out=$('out');
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function pct(w,l){return w+l?(100*w/(w+l)).toFixed(1)+'%':'—'}
+function meta(){$('meta').innerHTML=esc(P.length.toLocaleString()+' players · '+R.length.toLocaleString()+' results · '+E.length+' events, '+T[0]+' to '+T[T.length-1])}
+function prep(){by=P.map(function(){return[]});R.forEach(function(r,i){by[r[0]].push(i)});low=P.map(function(s){return s.toLowerCase()});order=P.map(function(_,i){return i}).sort(function(a,b){return by[b].length-by[a].length});byk=K.map(function(){return[]});R.forEach(function(r,i){byk[r[5]].push(i)});lowk=K.map(function(s){return s.toLowerCase()});korder=K.map(function(_,i){return i}).sort(function(a,b){return byk[b].length-byk[a].length});meta()}
+function home(){
+ document.body.classList.add('home');document.body.classList.remove('view');
+ out.innerHTML='';fit();
+}
+function showDeck(ki){
+ document.body.classList.remove('home');document.body.classList.add('view');
+ var rs=byk[ki].map(function(i){return R[i]}).sort(function(a,b){return a[8]<b[8]?1:a[8]>b[8]?-1:a[1]-b[1]});
+ var w=0,l=0,nw=0,nl=0,top8=0,best=1e9,pl={};
+ rs.forEach(function(r){w+=r[2];l+=r[3];nw+=r[6];nl+=r[7];if(r[1]<=8)top8++;if(r[1]<best)best=r[1];
+  var d=pl[r[0]]||(pl[r[0]]={n:0,w:0,l:0});d.n++;d.w+=r[2];d.l+=r[3]});
+ var ps=Object.keys(pl).map(function(k){return[+k,pl[k]]}).sort(function(a,b){return b[1].n-a[1].n||b[1].w-a[1].w});
+ var arch=A[rs[0][4]];
+ var h='<div class="who" data-view="deck"><h2>'+esc(K[ki])+'</h2>'+(arch?'<span class="sub" style="margin:0">'+esc(arch)+'</span>':'')+'<button id="clr">Clear</button></div><div class="stats">'
+ +[[rs.length,'Entries'],[ps.length,'Players'],[w+'–'+l,'Match record'],[pct(w,l),'Win rate'],[nw+'–'+nl+' ('+pct(nw,nl)+')','Excluding mirrors'],[top8,'Top 8 finishes'],['#'+best,'Best finish']]
+ .map(function(s){return'<div class="st"><b>'+esc(s[0])+'</b><small>'+s[1]+'</small></div>'}).join('')+'</div>';
+ h+='<h3>Most frequent pilots'+(ps.length>15?' (top 15 of '+ps.length+')':'')+'</h3><div class="box">'+ps.slice(0,15).map(function(x){var d=x[1],t=d.w+d.l;
+  return'<div class="dk" data-p="'+x[0]+'"><span>'+esc(P[x[0]])+'</span><div class="bar" title="'+pct(d.w,d.l)+' win rate"><i style="width:'+(t?100*d.w/t:0)+'%"></i></div><em>'+d.n+' event'+(d.n>1?'s':'')+' · '+d.w+'–'+d.l+' · '+pct(d.w,d.l)+'</em></div>'}).join('')+'</div>';
+ h+='<h3>Event history'+(rs.length>300?' (latest 300 of '+rs.length+')':'')+'</h3><div class="tw"><table><thead><tr><th>Date</th><th>Event</th><th class="n">Rank</th><th>Player</th><th class="n">W–L</th><th class="n">Non-mirror</th></tr></thead><tbody>'
+ +rs.slice(0,300).map(function(r){return'<tr><td>'+T[r[8]]+'</td><td>'+esc(E[r[9]])+'</td><td class="n">'+r[1]+'</td><td>'+esc(P[r[0]])+'</td><td class="n" style="color:'+(r[2]>=r[3]?'var(--win)':'var(--loss)')+'">'+r[2]+'–'+r[3]+'</td><td class="n">'+r[6]+'–'+r[7]+'</td></tr>'}).join('')+'</tbody></table></div>';
+ out.innerHTML=h;q.value=K[ki];sug.hidden=true;
+ $('clr').onclick=function(){q.value='';home();q.focus()};
+}
+function show(pi){
+ document.body.classList.remove('home');document.body.classList.add('view');
+ var rs=by[pi].map(function(i){return R[i]}).sort(function(a,b){return a[8]<b[8]?1:a[8]>b[8]?-1:a[1]-b[1]});
+ var w=0,l=0,nw=0,nl=0,top8=0,best=1e9,dk={};
+ rs.forEach(function(r){w+=r[2];l+=r[3];nw+=r[6];nl+=r[7];if(r[1]<=8)top8++;if(r[1]<best)best=r[1];
+  var d=dk[r[5]]||(dk[r[5]]={n:0,w:0,l:0});d.n++;d.w+=r[2];d.l+=r[3]});
+ var decks=Object.keys(dk).map(function(k){return[k,dk[k]]}).sort(function(a,b){return b[1].n-a[1].n});
+ var h='<div class="who"><h2>'+esc(P[pi])+'</h2><button id="clr">Clear</button></div><div class="stats">'
+ +[[rs.length,'Events'],[w+'–'+l,'Match record'],[pct(w,l),'Win rate'],[nw+'–'+nl+' ('+pct(nw,nl)+')','Excluding mirrors'],[top8,'Top 8 finishes'],['#'+best,'Best finish']]
+ .map(function(s){return'<div class="st"><b>'+esc(s[0])+'</b><small>'+s[1]+'</small></div>'}).join('')+'</div>';
+ h+='<h3>Decks played</h3><div class="box">'+decks.map(function(x){var d=x[1],t=d.w+d.l;
+  return'<div class="dk" data-k="'+x[0]+'"><span>'+esc(K[x[0]])+'</span><div class="bar" title="'+pct(d.w,d.l)+' win rate"><i style="width:'+(t?100*d.w/t:0)+'%"></i></div><em>'+d.n+' event'+(d.n>1?'s':'')+' · '+d.w+'–'+d.l+' · '+pct(d.w,d.l)+'</em></div>'}).join('')+'</div>';
+ h+='<h3>Event history</h3><div class="tw"><table><thead><tr><th>Date</th><th>Event</th><th class="n">Rank</th><th>Deck</th><th>Archetype</th><th class="n">W–L</th><th class="n">Non-mirror</th></tr></thead><tbody>'
+ +rs.map(function(r){return'<tr><td>'+T[r[8]]+'</td><td>'+esc(E[r[9]])+'</td><td class="n">'+r[1]+'</td><td>'+esc(K[r[5]])+'</td><td>'+(A[r[4]]?esc(A[r[4]]):'—')+'</td><td class="n" style="color:'+(r[2]>=r[3]?'var(--win)':'var(--loss)')+'">'+r[2]+'–'+r[3]+'</td><td class="n">'+r[6]+'–'+r[7]+'</td></tr>'}).join('')+'</tbody></table></div>';
+ out.innerHTML=h;q.value=P[pi];sug.hidden=true;
+ $('clr').onclick=function(){q.value='';home();q.focus()};
+}
+var cur=[],sel=-1;
+function find(L,C,max){var a=[],b=[];for(var i=0;i<L.length;i++){var x=L[i].indexOf(vq);if(x===0)a.push(i);else if(x>0)b.push(i)}
+ var s=function(u,v){return C[v].length-C[u].length};return a.sort(s).concat(b.sort(s)).slice(0,max)}
+var vq='';
+function suggest(){
+ var v=q.value.trim().toLowerCase();if(!v){sug.hidden=true;return}
+ vq=v;
+ cur=find(low,by,6).map(function(i){return{t:'p',i:i}}).concat(find(lowk,byk,4).map(function(i){return{t:'k',i:i}}));sel=-1;
+ sug.innerHTML=cur.length?cur.map(function(c){return c.t==='k'?'<button data-k="'+c.i+'">'+esc(K[c.i])+'<span>deck · '+byk[c.i].length+' entries</span></button>':'<button data-p="'+c.i+'">'+esc(P[c.i])+'<span>player · '+by[c.i].length+' events</span></button>'}).join(''):'<div class="empty" style="padding:14px">No player or deck matches “'+esc(q.value)+'”. Try a shorter name.</div>';
+ sug.hidden=false;
+}
+function openItem(c){if(c.t==='k')showDeck(c.i);else show(c.i)}
+q.addEventListener('input',suggest);
+q.addEventListener('keydown',function(e){
+ var bs=sug.querySelectorAll('button');
+ if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();sel=(sel+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;bs.forEach(function(b,i){b.classList.toggle('on',i===sel)})}
+ else if(e.key==='Enter'&&cur.length){openItem(cur[sel<0?0:sel])}
+ else if(e.key==='Escape'){sug.hidden=true}
+});
+document.addEventListener('click',function(e){var b=e.target.closest('[data-p],[data-k]');if(b){if(b.dataset.p!==undefined)show(+b.dataset.p);else showDeck(+b.dataset.k)}else if(!e.target.closest('.search'))sug.hidden=true});
+
+function fit(){var t=$('tt'),s=document.querySelector('.search'),w=document.querySelector('.wrap');var tw=t&&t.getBoundingClientRect().width;if(tw&&s&&w)s.style.width=Math.min(tw,w.clientWidth-36)+'px'}
+fit();addEventListener('resize',fit);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
+prep();home();
+</script></body></html>
