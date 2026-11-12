@@ -52,6 +52,10 @@ th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);white
 th{color:var(--mute);font-weight:500;font-size:13px}
 tr:last-child td{border:0}
 .n{text-align:right}
+.srt{display:inline-flex;flex-direction:column;vertical-align:middle;margin-left:4px;line-height:1}
+.sa{border:0;background:none;color:var(--mute);opacity:.45;font-size:8px;line-height:1;padding:1px 3px;cursor:pointer}
+.sa:hover{opacity:1}
+.sa.on{color:var(--ac);opacity:1}
 .dk[data-p],.dk[data-k]{cursor:pointer}
 .dk[data-p]:hover,.dk[data-k]:hover{background:var(--acs)}
 @media (max-width:700px){.wrap{padding-top:68px}}
@@ -61,7 +65,55 @@ body.home .bgl.on{opacity:.2}
 @media (prefers-reduced-motion:reduce){.bgl{transition:none}}
 #art{margin-top:4px}
 body.view #art{display:none}
+.flt{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:flex-start;text-align:left;margin:0 0 4px;color:var(--mute);font-size:14px}
+.pre{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.pb{border:1px solid var(--line);background:var(--sf);color:var(--ink);border-radius:8px;padding:5px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.pb:hover{border-color:var(--ac)}
+.pb.on{border-color:var(--ac);background:var(--acs);color:var(--ac)}
+.flt label{display:flex;align-items:center;gap:8px}
+.flt input{width:auto;font-size:15px;padding:8px 10px}
+#dr{border:1px solid var(--line);background:var(--sf);color:var(--ink);border-radius:999px;padding:7px 14px;font:inherit;font-size:14px;cursor:pointer}
+#dr:hover{border-color:var(--ac)}
+.navb{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:12px auto 0;max-width:100%}
+.nb{flex:0 0 auto;border:1px solid var(--line);background:var(--sf);color:var(--ink);border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.nb:hover{border-color:var(--ac);background:var(--acs)}
+body.view .navb{display:none}
+.lk{cursor:pointer}
+.lk:hover td{background:var(--acs)}
 .empty{color:var(--mute);padding:40px 0;text-align:center}
+/* spacing pass */
+.wrap{padding:44px 28px 88px}
+h1{margin:10px 0 18px}
+.sub{margin:0 0 34px;line-height:1.7}
+.navb{gap:12px;margin:22px auto 0}
+.nb{padding:9px 18px;font-size:14px;border-radius:10px}
+.who{margin:12px 0 30px;gap:18px}
+.flt{gap:16px;margin:0 0 14px}
+.flt input{padding:9px 12px}
+#dr{padding:8px 16px}
+.pre{gap:10px;margin:0 0 30px}
+.pb{padding:7px 16px;border-radius:10px}
+.stats{gap:18px}
+.st{padding:20px 22px}
+.st small{display:block;margin-top:4px}
+h3{margin:42px 0 16px}
+.box{padding:10px 24px}
+.dk{padding:15px 0;gap:18px}
+th,td{padding:14px 18px}
+th{padding-top:16px;padding-bottom:16px}
+.srt{margin-left:8px}
+.sa{padding:2px 4px}
+.lbl{margin:28px 0 0}
+.empty{padding:56px 0}
+footer{padding:28px 24px 32px;line-height:1.8}
+.stats{grid-template-columns:repeat(auto-fit,minmax(138px,1fr))}
+.st{display:flex;flex-direction:column;justify-content:center;min-height:96px}
+.st b{font-size:22px}
+h3{text-align:left}
+.dk{grid-template-columns:minmax(130px,1.3fr) 2fr 230px}
+@media (max-width:700px){.dk{grid-template-columns:1fr 1fr;row-gap:6px}.dk .bar{grid-column:1/-1;order:3}}
+th:first-child,td:first-child{width:1%;text-align:left;padding-left:22px;color:var(--mute)}
+@media (max-width:700px){.wrap{padding:76px 18px 64px}th,td{padding:12px 14px}.st{padding:16px 18px}}
 </style></head><body>
 <div id="bg" class="bgl" aria-hidden="true"></div>
 <div id="bg2" class="bgl" aria-hidden="true"></div>
@@ -72,56 +124,107 @@ body.view #art{display:none}
 <input id="q" type="search" placeholder="Search for a player or deck…" autocomplete="off" aria-label="Search for a player or deck">
 <div class="sug" id="sug" hidden></div>
 </div>
+<div class="navb"><button id="bp" class="nb" type="button">Most active players</button><button id="bd" class="nb" type="button">Most played decks</button><button id="bt" class="nb" type="button">Top 8 leaderboard</button></div>
 <div id="out"></div>
 </div>
 <footer>Data from the <a href="https://patreon.com/legacydatacollection" target="_blank" rel="noopener">Legacy Data Collection Project</a><div id="art"></div></footer>
 <script type="application/json" id="d">__DATA__</script>
 <script>
 var D=JSON.parse(document.getElementById('d').textContent),P=D.p,A=D.a,K=D.k,E=D.e,T=D.d,R=D.r;
-var by,low,order,byk,lowk,korder;
+var by,low,order,byk,lowk,korder,dmin,dmax;
 var $=function(i){return document.getElementById(i)},q=$('q'),sug=$('sug'),out=$('out');
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function pct(w,l){return w+l?(100*w/(w+l)).toFixed(1)+'%':'—'}
-function meta(){$('meta').innerHTML=esc(P.length.toLocaleString()+' players · '+R.length.toLocaleString()+' results · '+E.length+' events, '+T[0]+' to '+T[T.length-1])}
-function prep(){by=P.map(function(){return[]});R.forEach(function(r,i){by[r[0]].push(i)});low=P.map(function(s){return s.toLowerCase()});order=P.map(function(_,i){return i}).sort(function(a,b){return by[b].length-by[a].length});byk=K.map(function(){return[]});R.forEach(function(r,i){byk[r[5]].push(i)});lowk=K.map(function(s){return s.toLowerCase()});korder=K.map(function(_,i){return i}).sort(function(a,b){return byk[b].length-byk[a].length});meta()}
+function fd(d){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d);return m?m[3]+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m[2]-1]+' '+m[1]:d}
+function meta(){$('meta').innerHTML=esc(P.length.toLocaleString()+' players · '+R.length.toLocaleString()+' results · '+E.length+' events')+'<br>'+esc(fd(dmin)+' to '+fd(dmax))}
+function prep(){var sd=T.slice().sort();dmin=sd[0];dmax=sd[sd.length-1];by=P.map(function(){return[]});R.forEach(function(r,i){by[r[0]].push(i)});low=P.map(function(s){return s.toLowerCase()});order=P.map(function(_,i){return i}).sort(function(a,b){return by[b].length-by[a].length});byk=K.map(function(){return[]});R.forEach(function(r,i){byk[r[5]].push(i)});lowk=K.map(function(s){return s.toLowerCase()});korder=K.map(function(_,i){return i}).sort(function(a,b){return byk[b].length-byk[a].length});meta()}
 function home(){
  document.body.classList.add('home');document.body.classList.remove('view');
  out.innerHTML='';fit();
 }
+var rf='',rt='';
+var noRes='<div class="empty">No results in this date range.</div>';
+function inRange(r){var d=T[r[8]];return(!rf||d>=rf)&&(!rt||d<=rt)}
+function sortRows(rs){return rs.sort(function(a,b){var x=T[a[8]],y=T[b[8]];return x<y?1:x>y?-1:a[1]-b[1]})}
+function tally(rs){var o={w:0,l:0,nw:0,nl:0,top8:0,best:1e9};rs.forEach(function(r){o.w+=r[2];o.l+=r[3];o.nw+=r[6];o.nl+=r[7];if(r[1]<=8)o.top8++;if(r[1]<o.best)o.best=r[1]});return o}
+function cards(items){return'<div class="stats">'+items.map(function(s){return'<div class="st"><b>'+esc(s[0])+'</b><small>'+s[1]+'</small></div>'}).join('')+'</div>'}
+function recRow(label,attr,d){var t=d.w+d.l;return'<div class="dk" '+attr+'><span>'+esc(label)+'</span><div class="bar" title="'+pct(d.w,d.l)+' win rate"><i style="width:'+(t?100*d.w/t:0)+'%"></i></div><em>'+d.n+' event'+(d.n>1?'s':'')+' · '+d.w+'–'+d.l+' · '+pct(d.w,d.l)+'</em></div>'}
+var PR=['1M','3M','6M','1Y','2026','2025'];
+function pr(k){var y=+dmax.slice(0,4),m=+dmax.slice(5,7)-1,d=+dmax.slice(8,10),n={'1M':1,'3M':3,'6M':6,'1Y':12}[k];
+ if(!n)return[k+'-01-01',k+'-12-31'];
+ var tm=m-n,ty=y+Math.floor(tm/12);tm=((tm%12)+12)%12;var dim=new Date(Date.UTC(ty,tm+1,0)).getUTCDate();
+ var z=function(x){return(x<10?'0':'')+x};
+ return[ty+'-'+z(tm+1)+'-'+z(Math.min(d,dim)),dmax]}
+function presets(){return'<div class="pre">'+PR.map(function(k){var r=pr(k);return'<button type="button" class="pb'+(rf===r[0]&&rt===r[1]?' on':'')+'" data-pr="'+k+'">'+k+'</button>'}).join('')+'</div>'}
+function filterBar(){return'<div class="flt"><label>From <input type="date" id="df" min="'+dmin+'" max="'+dmax+'" value="'+rf+'"></label><label>To <input type="date" id="dt" min="'+dmin+'" max="'+dmax+'" value="'+rt+'"></label><button id="dr" type="button">Reset</button></div>'+presets()}
+function wire(fn){
+ $('clr').onclick=function(){rf=rt='';q.value='';home();q.focus()};
+ var df=$('df'),dt=$('dt');
+ function upd(){rf=df.value;rt=dt.value;if(rf&&rt&&rf>rt){var x=rf;rf=rt;rt=x;df.value=rf;dt.value=rt}$('res').innerHTML=fn()}
+ function mark(){Array.prototype.forEach.call(document.querySelectorAll('.pb'),function(b){var r=pr(b.dataset.pr);b.classList.toggle('on',rf===r[0]&&rt===r[1])})}
+ Array.prototype.forEach.call(document.querySelectorAll('.pb'),function(b){b.onclick=function(){var r=pr(b.dataset.pr);rf=r[0];rt=r[1];df.value=rf;dt.value=rt;$('res').innerHTML=fn();mark()}});
+ df.onchange=function(){upd();mark()};dt.onchange=function(){upd();mark()};
+ $('dr').onclick=function(){rf=rt='';df.value='';dt.value='';$('res').innerHTML=fn();mark()};
+}
+function deckBody(ki){
+ var rs=sortRows(byk[ki].map(function(i){return R[i]}).filter(inRange));
+ if(!rs.length)return noRes;
+ var o=tally(rs),pl={};
+ rs.forEach(function(r){var d=pl[r[0]]||(pl[r[0]]={n:0,w:0,l:0});d.n++;d.w+=r[2];d.l+=r[3]});
+ var ps=Object.keys(pl).map(function(k){return[+k,pl[k]]}).sort(function(a,b){return b[1].n-a[1].n||b[1].w-a[1].w});
+ return cards([[rs.length,'Entries'],[ps.length,'Players'],[o.w+'–'+o.l,'Match record'],[pct(o.w,o.l),'Win rate'],[o.nw+'–'+o.nl+' ('+pct(o.nw,o.nl)+')','Excluding mirrors'],[o.top8,'Top 8 finishes'],['#'+o.best,'Best finish']])
+ +'<h3>Most frequent pilots'+(ps.length>15?' (top 15 of '+ps.length+')':'')+'</h3><div class="box">'+ps.slice(0,15).map(function(x){return recRow(P[x[0]],'data-p="'+x[0]+'"',x[1])}).join('')+'</div>'
+ +'<h3>Event history'+(rs.length>300?' (latest 300 of '+rs.length+')':'')+'</h3><div class="tw"><table><thead><tr><th>Date</th><th>Event</th><th class="n">Rank</th><th>Player</th><th class="n">W–L</th><th class="n">Non-mirror</th></tr></thead><tbody>'
+ +rs.slice(0,300).map(function(r){return'<tr><td>'+fd(T[r[8]])+'</td><td>'+esc(E[r[9]])+'</td><td class="n">'+r[1]+'</td><td>'+esc(P[r[0]])+'</td><td class="n" style="color:'+(r[2]>=r[3]?'var(--win)':'var(--loss)')+'">'+r[2]+'–'+r[3]+'</td><td class="n">'+r[6]+'–'+r[7]+'</td></tr>'}).join('')+'</tbody></table></div>';
+}
+function playerBody(pi){
+ var rs=sortRows(by[pi].map(function(i){return R[i]}).filter(inRange));
+ if(!rs.length)return noRes;
+ var o=tally(rs),dk={};
+ rs.forEach(function(r){var d=dk[r[5]]||(dk[r[5]]={n:0,w:0,l:0});d.n++;d.w+=r[2];d.l+=r[3]});
+ var decks=Object.keys(dk).map(function(k){return[k,dk[k]]}).sort(function(a,b){return b[1].n-a[1].n});
+ return cards([[rs.length,'Events'],[o.w+'–'+o.l,'Match record'],[pct(o.w,o.l),'Win rate'],[o.nw+'–'+o.nl+' ('+pct(o.nw,o.nl)+')','Excluding mirrors'],[o.top8,'Top 8 finishes'],['#'+o.best,'Best finish']])
+ +'<h3>Decks played</h3><div class="box">'+decks.map(function(x){return recRow(K[x[0]],'data-k="'+x[0]+'"',x[1])}).join('')+'</div>'
+ +'<h3>Event history</h3><div class="tw"><table><thead><tr><th>Date</th><th>Event</th><th class="n">Rank</th><th>Deck</th><th>Archetype</th><th class="n">W–L</th><th class="n">Non-mirror</th></tr></thead><tbody>'
+ +rs.map(function(r){return'<tr><td>'+fd(T[r[8]])+'</td><td>'+esc(E[r[9]])+'</td><td class="n">'+r[1]+'</td><td>'+esc(K[r[5]])+'</td><td>'+(A[r[4]]?esc(A[r[4]]):'—')+'</td><td class="n" style="color:'+(r[2]>=r[3]?'var(--win)':'var(--loss)')+'">'+r[2]+'–'+r[3]+'</td><td class="n">'+r[6]+'–'+r[7]+'</td></tr>'}).join('')+'</tbody></table></div>';
+}
 function showDeck(ki){
  document.body.classList.remove('home');document.body.classList.add('view');
- var rs=byk[ki].map(function(i){return R[i]}).sort(function(a,b){return a[8]<b[8]?1:a[8]>b[8]?-1:a[1]-b[1]});
- var w=0,l=0,nw=0,nl=0,top8=0,best=1e9,pl={};
- rs.forEach(function(r){w+=r[2];l+=r[3];nw+=r[6];nl+=r[7];if(r[1]<=8)top8++;if(r[1]<best)best=r[1];
-  var d=pl[r[0]]||(pl[r[0]]={n:0,w:0,l:0});d.n++;d.w+=r[2];d.l+=r[3]});
- var ps=Object.keys(pl).map(function(k){return[+k,pl[k]]}).sort(function(a,b){return b[1].n-a[1].n||b[1].w-a[1].w});
- var arch=A[rs[0][4]];
- var h='<div class="who" data-view="deck"><h2>'+esc(K[ki])+'</h2>'+(arch?'<span class="sub" style="margin:0">'+esc(arch)+'</span>':'')+'<button id="clr">Clear</button></div><div class="stats">'
- +[[rs.length,'Entries'],[ps.length,'Players'],[w+'–'+l,'Match record'],[pct(w,l),'Win rate'],[nw+'–'+nl+' ('+pct(nw,nl)+')','Excluding mirrors'],[top8,'Top 8 finishes'],['#'+best,'Best finish']]
- .map(function(s){return'<div class="st"><b>'+esc(s[0])+'</b><small>'+s[1]+'</small></div>'}).join('')+'</div>';
- h+='<h3>Most frequent pilots'+(ps.length>15?' (top 15 of '+ps.length+')':'')+'</h3><div class="box">'+ps.slice(0,15).map(function(x){var d=x[1],t=d.w+d.l;
-  return'<div class="dk" data-p="'+x[0]+'"><span>'+esc(P[x[0]])+'</span><div class="bar" title="'+pct(d.w,d.l)+' win rate"><i style="width:'+(t?100*d.w/t:0)+'%"></i></div><em>'+d.n+' event'+(d.n>1?'s':'')+' · '+d.w+'–'+d.l+' · '+pct(d.w,d.l)+'</em></div>'}).join('')+'</div>';
- h+='<h3>Event history'+(rs.length>300?' (latest 300 of '+rs.length+')':'')+'</h3><div class="tw"><table><thead><tr><th>Date</th><th>Event</th><th class="n">Rank</th><th>Player</th><th class="n">W–L</th><th class="n">Non-mirror</th></tr></thead><tbody>'
- +rs.slice(0,300).map(function(r){return'<tr><td>'+T[r[8]]+'</td><td>'+esc(E[r[9]])+'</td><td class="n">'+r[1]+'</td><td>'+esc(P[r[0]])+'</td><td class="n" style="color:'+(r[2]>=r[3]?'var(--win)':'var(--loss)')+'">'+r[2]+'–'+r[3]+'</td><td class="n">'+r[6]+'–'+r[7]+'</td></tr>'}).join('')+'</tbody></table></div>';
- out.innerHTML=h;q.value=K[ki];sug.hidden=true;
- $('clr').onclick=function(){q.value='';home();q.focus()};
+ var arch=A[R[byk[ki][0]][4]];
+ out.innerHTML='<div class="who" data-view="deck"><h2>'+esc(K[ki])+'</h2>'+(arch?'<span class="sub" style="margin:0">'+esc(arch)+'</span>':'')+'<button id="clr">Back</button></div>'+filterBar()+'<div id="res">'+deckBody(ki)+'</div>';
+ q.value=K[ki];sug.hidden=true;wire(function(){return deckBody(ki)});
 }
 function show(pi){
  document.body.classList.remove('home');document.body.classList.add('view');
- var rs=by[pi].map(function(i){return R[i]}).sort(function(a,b){return a[8]<b[8]?1:a[8]>b[8]?-1:a[1]-b[1]});
- var w=0,l=0,nw=0,nl=0,top8=0,best=1e9,dk={};
- rs.forEach(function(r){w+=r[2];l+=r[3];nw+=r[6];nl+=r[7];if(r[1]<=8)top8++;if(r[1]<best)best=r[1];
-  var d=dk[r[5]]||(dk[r[5]]={n:0,w:0,l:0});d.n++;d.w+=r[2];d.l+=r[3]});
- var decks=Object.keys(dk).map(function(k){return[k,dk[k]]}).sort(function(a,b){return b[1].n-a[1].n});
- var h='<div class="who"><h2>'+esc(P[pi])+'</h2><button id="clr">Clear</button></div><div class="stats">'
- +[[rs.length,'Events'],[w+'–'+l,'Match record'],[pct(w,l),'Win rate'],[nw+'–'+nl+' ('+pct(nw,nl)+')','Excluding mirrors'],[top8,'Top 8 finishes'],['#'+best,'Best finish']]
- .map(function(s){return'<div class="st"><b>'+esc(s[0])+'</b><small>'+s[1]+'</small></div>'}).join('')+'</div>';
- h+='<h3>Decks played</h3><div class="box">'+decks.map(function(x){var d=x[1],t=d.w+d.l;
-  return'<div class="dk" data-k="'+x[0]+'"><span>'+esc(K[x[0]])+'</span><div class="bar" title="'+pct(d.w,d.l)+' win rate"><i style="width:'+(t?100*d.w/t:0)+'%"></i></div><em>'+d.n+' event'+(d.n>1?'s':'')+' · '+d.w+'–'+d.l+' · '+pct(d.w,d.l)+'</em></div>'}).join('')+'</div>';
- h+='<h3>Event history</h3><div class="tw"><table><thead><tr><th>Date</th><th>Event</th><th class="n">Rank</th><th>Deck</th><th>Archetype</th><th class="n">W–L</th><th class="n">Non-mirror</th></tr></thead><tbody>'
- +rs.map(function(r){return'<tr><td>'+T[r[8]]+'</td><td>'+esc(E[r[9]])+'</td><td class="n">'+r[1]+'</td><td>'+esc(K[r[5]])+'</td><td>'+(A[r[4]]?esc(A[r[4]]):'—')+'</td><td class="n" style="color:'+(r[2]>=r[3]?'var(--win)':'var(--loss)')+'">'+r[2]+'–'+r[3]+'</td><td class="n">'+r[6]+'–'+r[7]+'</td></tr>'}).join('')+'</tbody></table></div>';
- out.innerHTML=h;q.value=P[pi];sug.hidden=true;
- $('clr').onclick=function(){q.value='';home();q.focus()};
+ out.innerHTML='<div class="who"><h2>'+esc(P[pi])+'</h2><button id="clr">Back</button></div>'+filterBar()+'<div id="res">'+playerBody(pi)+'</div>';
+ q.value=P[pi];sug.hidden=true;wire(function(){return playerBody(pi)});
+}
+var bs={k:'',d:1},bk='p';
+function boardBody(kind){
+ var rs=R.filter(inRange);
+ if(!rs.length)return noRes;
+ var m={},i;
+ rs.forEach(function(r){var k=kind==='k'?r[5]:r[0],d=m[k]||(m[k]={n:0,w:0,l:0,t:0,p:{}});d.n++;d.w+=r[2];d.l+=r[3];if(r[1]<=8)d.t++;if(kind==='k')d.p[r[0]]=1});
+ var ls=Object.keys(m).map(function(k){return[+k,m[k]]});
+ if(kind==='t'){ls=ls.filter(function(x){return x[1].t>0});if(!ls.length)return noRes;ls.sort(function(a,b){return b[1].t-a[1].t||a[1].n-b[1].n||b[1].w-a[1].w||a[0]-b[0]})}
+ else ls.sort(function(a,b){return b[1].n-a[1].n||b[1].w-a[1].w||a[0]-b[0]});
+ var total=ls.length,shown=ls.slice(0,100);
+ if(bs.k){var vf={n:function(d){return d.n},pl:function(d){return Object.keys(d.p).length},rec:function(d){return d.w},wr:function(d){return d.w+d.l?d.w/(d.w+d.l):-1},t:function(d){return d.t},cv:function(d){return d.n?d.t/d.n:0}}[bs.k];shown.sort(function(a,b){return(vf(a[1])-vf(b[1]))*bs.d})}
+ function th(l,k){var a=function(d,s){return'<button type="button" class="sa'+(bs.k===k&&bs.d===d?' on':'')+'" data-s="'+k+'" data-d="'+d+'" aria-label="Sort '+l+(d>0?' ascending':' descending')+'">'+s+'</button>'};return'<th class="n">'+l+'<span class="srt">'+a(1,'▲')+a(-1,'▼')+'</span></th>'}
+ var head=kind==='t'?'<th class="n">#</th><th>Player</th>'+th('Events','n')+th('Top 8s','t')+th('Conversion rate','cv'):kind==='p'?'<th class="n">#</th><th>Player</th>'+th('Events','n')+th('Match record','rec')+th('Win rate','wr'):'<th class="n">#</th><th>Deck</th>'+th('Entries','n')+th('Share','n')+th('Players','pl')+th('Match record','rec')+th('Win rate','wr')+th('Top 8s','t');
+ return'<p class="lbl" style="text-align:left;margin:4px 0 16px">'+(total>100?'Top 100 of '+total.toLocaleString():total.toLocaleString())+(kind==='k'?' decks':' players')+', ranked by '+(kind==='p'?'events played':kind==='t'?'Top 8 finishes':'entries')+'</p><div class="tw"><table><thead><tr>'+head+'</tr></thead><tbody>'
+ +shown.map(function(x,j){var d=x[1];
+  return kind==='t'
+   ?'<tr class="lk" data-p="'+x[0]+'"><td class="n">'+(j+1)+'</td><td>'+esc(P[x[0]])+'</td><td class="n">'+d.n+'</td><td class="n">'+d.t+'</td><td class="n">'+(100*d.t/d.n).toFixed(1)+'%</td></tr>'
+   :kind==='p'
+   ?'<tr class="lk" data-p="'+x[0]+'"><td class="n">'+(j+1)+'</td><td>'+esc(P[x[0]])+'</td><td class="n">'+d.n+'</td><td class="n">'+d.w+'–'+d.l+'</td><td class="n">'+pct(d.w,d.l)+'</td></tr>'
+   :'<tr class="lk" data-k="'+x[0]+'"><td class="n">'+(j+1)+'</td><td>'+esc(K[x[0]])+'</td><td class="n">'+d.n+'</td><td class="n">'+(100*d.n/rs.length).toFixed(1)+'%</td><td class="n">'+Object.keys(d.p).length+'</td><td class="n">'+d.w+'–'+d.l+'</td><td class="n">'+pct(d.w,d.l)+'</td><td class="n">'+d.t+'</td></tr>'}).join('')+'</tbody></table></div>';
+}
+function showBoard(kind){
+ bk=kind;bs={k:'',d:1};
+ document.body.classList.remove('home');document.body.classList.add('view');
+ out.innerHTML='<div class="who" data-view="board"><h2>'+(kind==='p'?'Most active players':kind==='t'?'Top 8 leaderboard':'Most played decks')+'</h2><button id="clr">Back</button></div>'+filterBar()+'<div id="res">'+boardBody(kind)+'</div>';
+ sug.hidden=true;wire(function(){return boardBody(kind)});
 }
 var cur=[],sel=-1;
 function find(L,C,max){var a=[],b=[];for(var i=0;i<L.length;i++){var x=L[i].indexOf(vq);if(x===0)a.push(i);else if(x>0)b.push(i)}
@@ -142,9 +245,9 @@ q.addEventListener('keydown',function(e){
  else if(e.key==='Enter'&&cur.length){openItem(cur[sel<0?0:sel])}
  else if(e.key==='Escape'){sug.hidden=true}
 });
-document.addEventListener('click',function(e){var b=e.target.closest('[data-p],[data-k]');if(b){if(b.dataset.p!==undefined)show(+b.dataset.p);else showDeck(+b.dataset.k)}else if(!e.target.closest('.search'))sug.hidden=true});
+document.addEventListener('click',function(e){var s=e.target.closest('[data-s]');if(s){bs={k:s.dataset.s,d:+s.dataset.d};$('res').innerHTML=boardBody(bk);return}var b=e.target.closest('[data-p],[data-k]');if(b){if(b.dataset.p!==undefined)show(+b.dataset.p);else showDeck(+b.dataset.k)}else if(!e.target.closest('.search'))sug.hidden=true});
 
-function fit(){var t=$('tt'),s=document.querySelector('.search'),w=document.querySelector('.wrap');var tw=t&&t.getBoundingClientRect().width;if(tw&&s&&w)s.style.width=Math.min(tw,w.clientWidth-36)+'px'}
+function fit(){var t=$('tt'),s=document.querySelector('.search'),w=document.querySelector('.wrap');var tw=t&&t.getBoundingClientRect().width;if(tw&&s&&w){s.style.width=Math.min(tw,w.clientWidth-36)+'px';var nb=document.querySelector('.navb');if(nb)nb.style.width=s.style.width}}
 fit();addEventListener('resize',fit);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
 (function(){
  var layers=[$('bg'),$('bg2')],cl=1,busy=false,EVERY=10000;
@@ -175,5 +278,6 @@ fit();addEventListener('resize',fit);if(document.fonts&&document.fonts.ready)doc
  next();
  setInterval(function(){if(!document.hidden&&document.body.classList.contains('home'))next()},EVERY);
 })();
+$('bp').onclick=function(){showBoard('p')};$('bd').onclick=function(){showBoard('k')};$('bt').onclick=function(){showBoard('t')};
 prep();home();
 </script></body></html>
