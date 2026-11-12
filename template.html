@@ -55,14 +55,16 @@ tr:last-child td{border:0}
 .dk[data-p],.dk[data-k]{cursor:pointer}
 .dk[data-p]:hover,.dk[data-k]:hover{background:var(--acs)}
 @media (max-width:700px){.wrap{padding-top:68px}}
-#bg{position:fixed;inset:0;z-index:-1;background:center/cover no-repeat;opacity:0;pointer-events:none;transition:opacity 1.2s ease}
-body.home #bg.on{opacity:.2}
-@media (prefers-color-scheme:dark){body.home #bg.on{opacity:.14}}
-@media (prefers-reduced-motion:reduce){#bg{transition:none}}
+.bgl{position:fixed;inset:0;z-index:-1;background:center/cover no-repeat;opacity:0;pointer-events:none;transition:opacity 1.5s ease}
+body.home .bgl.on{opacity:.2}
+@media (prefers-color-scheme:dark){body.home .bgl.on{opacity:.14}}
+@media (prefers-reduced-motion:reduce){.bgl{transition:none}}
+#art{margin-top:4px}
 body.view #art{display:none}
 .empty{color:var(--mute);padding:40px 0;text-align:center}
 </style></head><body>
-<div id="bg" aria-hidden="true"></div>
+<div id="bg" class="bgl" aria-hidden="true"></div>
+<div id="bg2" class="bgl" aria-hidden="true"></div>
 <div class="wrap">
 <h1><span id="tt">Legacy Challenge Database</span></h1>
 <p class="sub"><span id="meta"></span></p>
@@ -72,7 +74,7 @@ body.view #art{display:none}
 </div>
 <div id="out"></div>
 </div>
-<footer>Data from the <a href="https://patreon.com/legacydatacollection" target="_blank" rel="noopener">Legacy Data Collection Project</a><span id="art"></span></footer>
+<footer>Data from the <a href="https://patreon.com/legacydatacollection" target="_blank" rel="noopener">Legacy Data Collection Project</a><div id="art"></div></footer>
 <script type="application/json" id="d">__DATA__</script>
 <script>
 var D=JSON.parse(document.getElementById('d').textContent),P=D.p,A=D.a,K=D.k,E=D.e,T=D.d,R=D.r;
@@ -145,22 +147,33 @@ document.addEventListener('click',function(e){var b=e.target.closest('[data-p],[
 function fit(){var t=$('tt'),s=document.querySelector('.search'),w=document.querySelector('.wrap');var tw=t&&t.getBoundingClientRect().width;if(tw&&s&&w)s.style.width=Math.min(tw,w.clientWidth-36)+'px'}
 fit();addEventListener('resize',fit);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
 (function(){
- fetch('https://api.scryfall.com/cards/random?q='+encodeURIComponent('f:legacy game:paper'),{headers:{Accept:'application/json;q=0.9,*/*;q=0.8'}})
- .then(function(r){if(!r.ok)throw 0;return r.json()})
- .then(function(c){
-  var f=c.image_uris?c:(c.card_faces&&c.card_faces[0]&&c.card_faces[0].image_uris?c.card_faces[0]:null);
-  var u=f&&f.image_uris.art_crop;if(!u)return;
-  var im=new Image();
-  im.onload=function(){
-   $('bg').style.backgroundImage='url("'+u+'")';$('bg').classList.add('on');
-   var s=$('art'),a=document.createElement('a'),by=f.artist||c.artist;
-   a.href=c.scryfall_uri;a.target='_blank';a.rel='noopener';a.textContent=c.name;
-   s.textContent=' · Background: ';s.appendChild(a);
-   s.appendChild(document.createTextNode((by?' by '+by:'')+' via Scryfall. Magic: The Gathering is © Wizards of the Coast.'));
-  };
-  im.src=u;
- })
- .catch(function(){});
+ var layers=[$('bg'),$('bg2')],cl=1,busy=false,EVERY=10000;
+ function credit(c,f){
+  var s=$('art'),a=document.createElement('a'),by=f.artist||c.artist;
+  a.href=c.scryfall_uri;a.target='_blank';a.rel='noopener';a.textContent=c.name;
+  s.textContent='Background: ';s.appendChild(a);
+  s.appendChild(document.createTextNode((by?' by '+by:'')+' via Scryfall.'));
+ }
+ function next(){
+  if(busy)return;busy=true;
+  fetch('https://api.scryfall.com/cards/random?q='+encodeURIComponent('f:legacy game:paper'),{headers:{Accept:'application/json;q=0.9,*/*;q=0.8'}})
+  .then(function(r){if(!r.ok)throw 0;return r.json()})
+  .then(function(c){
+   var f=c.image_uris?c:(c.card_faces&&c.card_faces[0]&&c.card_faces[0].image_uris?c.card_faces[0]:null);
+   var u=f&&f.image_uris.art_crop;if(!u){busy=false;return}
+   var im=new Image();
+   im.onload=function(){
+    var n=1-cl;layers[n].style.backgroundImage='url("'+u+'")';
+    layers[n].classList.add('on');layers[cl].classList.remove('on');cl=n;
+    credit(c,f);busy=false;
+   };
+   im.onerror=function(){busy=false};
+   im.src=u;
+  })
+  .catch(function(){busy=false});
+ }
+ next();
+ setInterval(function(){if(!document.hidden&&document.body.classList.contains('home'))next()},EVERY);
 })();
 prep();home();
 </script></body></html>
