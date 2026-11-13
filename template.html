@@ -82,6 +82,26 @@ body.view .navb{display:none}
 .lk:hover td{background:var(--acs)}
 .empty{color:var(--mute);padding:40px 0;text-align:center}
 /* spacing pass */
+.menu{position:fixed;top:max(16px,env(safe-area-inset-top));left:16px;z-index:9}
+.mnb{width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--sf);color:var(--ink);border-radius:50%;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.mnb:hover,.mnb[aria-expanded="true"]{border-color:var(--ac);background:var(--acs)}
+.mnb:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+body.view .menu{display:none}
+
+.nb .car{font-size:11px;margin-left:4px}
+.mlist{position:absolute;top:calc(100% + 8px);left:0;min-width:240px;background:var(--sf);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.14);padding:8px;text-align:left;z-index:8}
+.mh{color:var(--mute);font-size:12px;letter-spacing:.04em;text-transform:uppercase;padding:8px 12px 4px}
+.mh.sep{border-top:1px solid var(--line);margin-top:6px;padding-top:12px}
+.mi{display:block;width:100%;text-align:left;border:0;background:none;color:var(--ink);font:inherit;font-size:15px;padding:10px 12px;border-radius:8px;cursor:pointer}
+.mi:hover,.mi:focus-visible{background:var(--acs);outline:none}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:0 0 30px;text-align:left}
+.cmp label{display:flex;flex-direction:column;gap:8px;color:var(--mute);font-size:14px}
+.cmp input{font-size:16px;padding:12px 14px}
+.cmpt td.bt{color:var(--win);font-weight:700}
+.cmpt{min-width:0}
+.dkn{font-weight:700;color:var(--ink);cursor:pointer;white-space:normal}
+.dkn:hover{color:var(--ac)}
+@media (max-width:700px){.cmp{grid-template-columns:1fr}}
 .wrap{padding:44px 28px 88px}
 h1{margin:10px 0 18px}
 .sub{margin:0 0 34px;line-height:1.7}
@@ -124,8 +144,14 @@ th:first-child,td:first-child{width:1%;text-align:left;padding-left:22px;color:v
 <input id="q" type="search" placeholder="Search for a player or deck…" autocomplete="off" aria-label="Search for a player or deck">
 <div class="sug" id="sug" hidden></div>
 </div>
-<div class="navb"><button id="bp" class="nb" type="button">Most active players</button><button id="bd" class="nb" type="button">Most played decks</button><button id="bt" class="nb" type="button">Top 8 leaderboard</button></div>
-<div id="out"></div>
+<div class="menu"><button id="mn" class="mnb" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Menu" title="Menu"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></button><div class="mlist" id="ml" hidden>
+<div class="mh">Leaderboards</div>
+<button id="bp" class="mi" type="button">Most active players</button>
+<button id="bd" class="mi" type="button">Most played decks</button>
+<button id="bt" class="mi" type="button">Top 8 leaderboard</button>
+<div class="mh sep">Tools</div>
+<button id="bc" class="mi" type="button">Compare decks</button>
+</div></div><div id="out"></div>
 </div>
 <footer>Data from the <a href="https://patreon.com/legacydatacollection" target="_blank" rel="noopener">Legacy Data Collection Project</a><div id="art"></div></footer>
 <script type="application/json" id="d">__DATA__</script>
@@ -220,6 +246,45 @@ function boardBody(kind){
    ?'<tr class="lk" data-p="'+x[0]+'"><td class="n">'+(j+1)+'</td><td>'+esc(P[x[0]])+'</td><td class="n">'+d.n+'</td><td class="n">'+d.w+'–'+d.l+'</td><td class="n">'+pct(d.w,d.l)+'</td></tr>'
    :'<tr class="lk" data-k="'+x[0]+'"><td class="n">'+(j+1)+'</td><td>'+esc(K[x[0]])+'</td><td class="n">'+d.n+'</td><td class="n">'+(100*d.n/rs.length).toFixed(1)+'%</td><td class="n">'+Object.keys(d.p).length+'</td><td class="n">'+d.w+'–'+d.l+'</td><td class="n">'+pct(d.w,d.l)+'</td><td class="n">'+d.t+'</td></tr>'}).join('')+'</tbody></table></div>';
 }
+var CK={a:-1,b:-1};
+function dstat(ki){var rs=byk[ki].map(function(i){return R[i]}).filter(inRange),o=tally(rs),pl={};rs.forEach(function(r){pl[r[0]]=1});o.n=rs.length;o.pl=pl;o.np=Object.keys(pl).length;return o}
+function kidx(v){v=v.trim().toLowerCase();if(!v)return-1;for(var i=0;i<K.length;i++)if(K[i].toLowerCase()===v)return i;return-1}
+function compareBody(){
+ var a=kidx($('ca').value),b=kidx($('cb').value);
+ if(a<0||b<0)return'<div class="empty">Choose two decks to compare.</div>';
+ if(a===b)return'<div class="empty">Choose two different decks.</div>';
+ var tot=R.filter(inRange).length;
+ if(!tot)return noRes;
+ var A=dstat(a),B=dstat(b),both=0;Object.keys(A.pl).forEach(function(k){if(B.pl[k])both++});
+ var wr=function(w,l){return w+l?w/(w+l):-1},cv=function(o){return o.n?o.top8/o.n:-1};
+ var rows=[
+  ['Entries',A.n,B.n,String(A.n),String(B.n),1],
+  ['Share of all entries',tot?A.n/tot:0,tot?B.n/tot:0,(100*A.n/tot).toFixed(1)+'%',(100*B.n/tot).toFixed(1)+'%',1],
+  ['Players',A.np,B.np,String(A.np),String(B.np),1],
+  ['Match record',0,0,A.w+'–'+A.l,B.w+'–'+B.l,0],
+  ['Win rate',wr(A.w,A.l),wr(B.w,B.l),pct(A.w,A.l),pct(B.w,B.l),1],
+  ['Record excluding mirrors',0,0,A.nw+'–'+A.nl,B.nw+'–'+B.nl,0],
+  ['Win rate excluding mirrors',wr(A.nw,A.nl),wr(B.nw,B.nl),pct(A.nw,A.nl),pct(B.nw,B.nl),1],
+  ['Top 8s',A.top8,B.top8,String(A.top8),String(B.top8),1],
+  ['Top 8 conversion rate',cv(A),cv(B),A.n?(100*A.top8/A.n).toFixed(1)+'%':'—',B.n?(100*B.top8/B.n).toFixed(1)+'%':'—',1],
+  ['Best finish',A.n?A.best:1e9,B.n?B.best:1e9,A.n?'#'+A.best:'—',B.n?'#'+B.best:'—',-1]
+ ];
+ function cell(x,y,s,dir){var win=dir&&x!==y&&(dir>0?x>y:x<y)&&!(dir<0&&x>=1e9);return'<td class="n'+(win?' bt':'')+'">'+s+'</td>'}
+ return'<div class="tw"><table class="cmpt"><thead><tr><th>Metric</th><th class="n"><span class="dkn" data-k="'+a+'">'+esc(K[a])+'</span></th><th class="n"><span class="dkn" data-k="'+b+'">'+esc(K[b])+'</span></th></tr></thead><tbody>'
+ +rows.map(function(r){return'<tr><td>'+r[0]+'</td>'+cell(r[1],r[2],r[3],r[5])+cell(r[2],r[1],r[4],r[5])+'</tr>'}).join('')
+ +'</tbody></table></div><p class="lbl" style="text-align:left;margin:14px 0 0">'+both.toLocaleString()+' player'+(both===1?'':'s')+' played both decks in this period. Green marks the stronger value; match records and mirror records are not compared.</p>';
+}
+function showCompare(){
+ bk='c';
+ document.body.classList.remove('home');document.body.classList.add('view');
+ var dl='<datalist id="dkl">'+K.map(function(k){return'<option value="'+esc(k)+'">'}).join('')+'</datalist>';
+ out.innerHTML='<div class="who" data-view="board"><h2>Compare decks</h2><button id="clr">Back</button></div>'+filterBar()
+  +'<div class="cmp"><label>Deck 1<input id="ca" list="dkl" placeholder="Type or pick a deck…" autocomplete="off"></label><label>Deck 2<input id="cb" list="dkl" placeholder="Type or pick a deck…" autocomplete="off"></label></div>'+dl
+  +'<div id="res"></div>';
+ sug.hidden=true;wire(compareBody);$('res').innerHTML=compareBody();
+ var go=function(){$('res').innerHTML=compareBody()};
+ $('ca').oninput=go;$('cb').oninput=go;$('ca').onchange=go;$('cb').onchange=go;
+}
 function showBoard(kind){
  bk=kind;bs={k:'',d:1};
  document.body.classList.remove('home');document.body.classList.add('view');
@@ -278,6 +343,10 @@ fit();addEventListener('resize',fit);if(document.fonts&&document.fonts.ready)doc
  next();
  setInterval(function(){if(!document.hidden&&document.body.classList.contains('home'))next()},EVERY);
 })();
-$('bp').onclick=function(){showBoard('p')};$('bd').onclick=function(){showBoard('k')};$('bt').onclick=function(){showBoard('t')};
+$('bp').onclick=function(){showBoard('p')};$('bd').onclick=function(){showBoard('k')};$('bt').onclick=function(){showBoard('t')};$('bc').onclick=showCompare;
+(function(){var mn=$('mn'),ml=$('ml');function set(o){ml.hidden=!o;mn.setAttribute('aria-expanded',o)}
+mn.onclick=function(e){e.stopPropagation();set(ml.hidden)};ml.onclick=function(){set(false)};
+document.addEventListener('click',function(e){if(!e.target.closest('.menu'))set(false)});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')set(false)})})();
 prep();home();
 </script></body></html>

@@ -4,9 +4,18 @@ on:
   schedule:
     - cron: "0 16 * * 0"   # Sunday 16:00 UTC = Monday 00:00 in Singapore (GitHub uses UTC)
   workflow_dispatch:        # adds a "Run workflow" button for manual runs
+  push:
+    branches: [main]
+    paths:
+      - template.html       # rebuild whenever the template changes
+      - build.py
 
 permissions:
   contents: write
+
+concurrency:
+  group: update-database
+  cancel-in-progress: false
 
 jobs:
   update:
