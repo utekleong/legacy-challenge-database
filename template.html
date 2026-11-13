@@ -148,7 +148,7 @@ th:first-child,td:first-child{width:1%;text-align:left;padding-left:22px;color:v
 <div class="mh">Leaderboards</div>
 <button id="bp" class="mi" type="button">Most active players</button>
 <button id="bd" class="mi" type="button">Most played decks</button>
-<button id="bt" class="mi" type="button">Top 8 leaderboard</button>
+<button id="bt" class="mi" type="button">Most Top 8s</button>
 <div class="mh sep">Tools</div>
 <button id="bc" class="mi" type="button">Compare decks</button>
 </div></div><div id="out"></div>
@@ -288,7 +288,7 @@ function showCompare(){
 function showBoard(kind){
  bk=kind;bs={k:'',d:1};
  document.body.classList.remove('home');document.body.classList.add('view');
- out.innerHTML='<div class="who" data-view="board"><h2>'+(kind==='p'?'Most active players':kind==='t'?'Top 8 leaderboard':'Most played decks')+'</h2><button id="clr">Back</button></div>'+filterBar()+'<div id="res">'+boardBody(kind)+'</div>';
+ out.innerHTML='<div class="who" data-view="board"><h2>'+(kind==='p'?'Most active players':kind==='t'?'Most Top 8s':'Most played decks')+'</h2><button id="clr">Back</button></div>'+filterBar()+'<div id="res">'+boardBody(kind)+'</div>';
  sug.hidden=true;wire(function(){return boardBody(kind)});
 }
 var cur=[],sel=-1;
