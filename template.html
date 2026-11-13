@@ -168,7 +168,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;
 function pct(w,l){return w+l?(100*w/(w+l)).toFixed(1)+'%':'—'}
 function fd(d){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d);return m?m[3]+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m[2]-1]+' '+m[1]:d}
 function meta(){$('meta').innerHTML=esc(P.length.toLocaleString()+' players · '+R.length.toLocaleString()+' results · '+E.length+' events')+'<br>'+esc(fd(dmin)+' to '+fd(dmax))}
-function prep(){var sd=T.slice().sort();dmin=sd[0];dmax=sd[sd.length-1];by=P.map(function(){return[]});R.forEach(function(r,i){by[r[0]].push(i)});low=P.map(function(s){return s.toLowerCase()});order=P.map(function(_,i){return i}).sort(function(a,b){return by[b].length-by[a].length});byk=K.map(function(){return[]});R.forEach(function(r,i){byk[r[5]].push(i)});lowk=K.map(function(s){return s==='(no decklist)'?'\u0000':s.toLowerCase()});korder=K.map(function(_,i){return i}).sort(function(a,b){return byk[b].length-byk[a].length});meta()}
+function prep(){var sd=T.slice().sort();dmin=sd[0];dmax=sd[sd.length-1];by=P.map(function(){return[]});R.forEach(function(r,i){by[r[0]].push(i)});low=P.map(function(s){return s.toLowerCase()});order=P.map(function(_,i){return i}).sort(function(a,b){return by[b].length-by[a].length});byk=K.map(function(){return[]});R.forEach(function(r,i){byk[r[5]].push(i)});lowk=K.map(function(s){return s.toLowerCase()});korder=K.map(function(_,i){return i}).sort(function(a,b){return byk[b].length-byk[a].length});meta()}
 function home(){
  document.body.classList.add('home');document.body.classList.remove('view');
  out.innerHTML='';fit();
@@ -235,8 +235,6 @@ function boardBody(kind){
  var rs=R.filter(inRange);
  if(!rs.length)return noRes;
  var m={},i;
- if(kind==='k')rs=rs.filter(function(r){return K[r[5]]!==ND});
- if(!rs.length)return noRes;
  rs.forEach(function(r){var k=kind==='k'?r[5]:r[0],d=m[k]||(m[k]={n:0,w:0,l:0,t:0,p:{}});d.n++;d.w+=r[2];d.l+=r[3];if(r[1]<=8)d.t++;if(kind==='k')d.p[r[0]]=1});
  var ls=Object.keys(m).map(function(k){return[+k,m[k]]});
  if(kind==='t'){ls=ls.filter(function(x){return x[1].t>0});if(!ls.length)return noRes;ls.sort(function(a,b){return b[1].t-a[1].t||a[1].n-b[1].n||b[1].w-a[1].w||a[0]-b[0]})}
@@ -253,14 +251,14 @@ function boardBody(kind){
    ?'<tr class="lk" data-p="'+x[0]+'"><td class="n">'+(j+1)+'</td><td>'+esc(P[x[0]])+'</td><td class="n">'+d.n+'</td><td class="n">'+d.w+'–'+d.l+'</td><td class="n">'+pct(d.w,d.l)+'</td></tr>'
    :'<tr class="lk" data-k="'+x[0]+'"><td class="n">'+(j+1)+'</td><td>'+esc(K[x[0]])+'</td><td class="n">'+d.n+'</td><td class="n">'+(100*d.n/rs.length).toFixed(1)+'%</td><td class="n">'+Object.keys(d.p).length+'</td><td class="n">'+d.w+'–'+d.l+'</td><td class="n">'+pct(d.w,d.l)+'</td><td class="n">'+d.t+'</td></tr>'}).join('')+'</tbody></table></div>';
 }
-var ND='(no decklist)';var CK={a:-1,b:-1};
+var CK={a:-1,b:-1};
 function dstat(ki){var rs=byk[ki].map(function(i){return R[i]}).filter(inRange),o=tally(rs),pl={};rs.forEach(function(r){pl[r[0]]=1});o.n=rs.length;o.pl=pl;o.np=Object.keys(pl).length;return o}
-function kidx(v){v=v.trim().toLowerCase();if(!v)return-1;for(var i=0;i<K.length;i++)if(K[i]!==ND&&K[i].toLowerCase()===v)return i;return-1}
+function kidx(v){v=v.trim().toLowerCase();if(!v)return-1;for(var i=0;i<K.length;i++)if(K[i].toLowerCase()===v)return i;return-1}
 function compareBody(){
  var a=kidx($('ca').value),b=kidx($('cb').value);
  if(a<0||b<0)return'<div class="empty">Choose two decks to compare.</div>';
  if(a===b)return'<div class="empty">Choose two different decks.</div>';
- var tot=R.filter(inRange).filter(function(r){return K[r[5]]!==ND}).length;
+ var tot=R.filter(inRange).length;
  if(!tot)return noRes;
  var A=dstat(a),B=dstat(b),both=0;Object.keys(A.pl).forEach(function(k){if(B.pl[k])both++});
  var wr=function(w,l){return w+l?w/(w+l):-1},cv=function(o){return o.n?o.top8/o.n:-1};
@@ -284,7 +282,7 @@ function compareBody(){
 function showCompare(){
  bk='c';
  document.body.classList.remove('home');document.body.classList.add('view');
- var dl='<datalist id="dkl">'+K.filter(function(k){return k!==ND}).map(function(k){return'<option value="'+esc(k)+'">'}).join('')+'</datalist>';
+ var dl='<datalist id="dkl">'+K.map(function(k){return'<option value="'+esc(k)+'">'}).join('')+'</datalist>';
  out.innerHTML='<div class="who" data-view="board"><h2>Compare decks</h2><button id="clr">Back</button></div>'+filterBar()
   +'<div class="cmp"><label>Deck 1<input id="ca" list="dkl" placeholder="Type or pick a deck…" autocomplete="off"></label><label>Deck 2<input id="cb" list="dkl" placeholder="Type or pick a deck…" autocomplete="off"></label></div>'+dl
   +'<div id="res"></div>';
