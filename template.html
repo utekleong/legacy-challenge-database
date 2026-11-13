@@ -134,6 +134,11 @@ h3{text-align:left}
 @media (max-width:700px){.dk{grid-template-columns:1fr 1fr;row-gap:6px}.dk .bar{grid-column:1/-1;order:3}}
 th:first-child,td:first-child{width:1%;text-align:left;padding-left:22px;color:var(--mute)}
 @media (max-width:700px){.wrap{padding:76px 18px 64px}th,td{padding:12px 14px}.st{padding:16px 18px}}
+
+.mnb{width:auto;height:46px;gap:10px;padding:0 20px 0 16px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);font:inherit;font-size:16px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.18);animation:mpulse 1.8s ease-out 3}
+.mnb:hover,.mnb[aria-expanded="true"]{background:var(--ink);filter:opacity(.85);border:0}
+@keyframes mpulse{0%{box-shadow:0 4px 14px rgba(0,0,0,.18),0 0 0 0 rgba(120,126,140,.4)}70%,100%{box-shadow:0 4px 14px rgba(0,0,0,.18),0 0 0 14px rgba(120,126,140,0)}}
+@media (prefers-reduced-motion:reduce){.mnb{animation:none}}
 </style></head><body>
 <div id="bg" class="bgl" aria-hidden="true"></div>
 <div id="bg2" class="bgl" aria-hidden="true"></div>
@@ -144,7 +149,7 @@ th:first-child,td:first-child{width:1%;text-align:left;padding-left:22px;color:v
 <input id="q" type="search" placeholder="Search for a player or deck…" autocomplete="off" aria-label="Search for a player or deck">
 <div class="sug" id="sug" hidden></div>
 </div>
-<div class="menu"><button id="mn" class="mnb" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Menu" title="Menu"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></button><div class="mlist" id="ml" hidden>
+<div class="menu"><button id="mn" class="mnb" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg><span>Menu</span></button><div class="mlist" id="ml" hidden>
 <div class="mh">Leaderboards</div>
 <button id="bp" class="mi" type="button">Most active players</button>
 <button id="bd" class="mi" type="button">Most played decks</button>
