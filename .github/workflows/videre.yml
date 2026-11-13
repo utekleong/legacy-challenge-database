@@ -1,0 +1,49 @@
+name: Build Videre version
+
+# Manual only: builds videre.html (the same site, fed by the Videre Project API)
+# next to index.html so the two can be compared. Does not touch index.html.
+on:
+  workflow_dispatch:
+    inputs:
+      kinds:
+        description: "Event kinds to include (comma separated)"
+        default: "Challenge"
+      start:
+        description: "First date to fetch (YYYY-MM-DD)"
+        default: "2025-01-01"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: videre-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build videre.html from the Videre API
+        env:
+          KINDS: ${{ inputs.kinds }}
+          START: ${{ inputs.start }}
+        run: python build_videre.py
+
+      - name: Commit and push if it changed
+        run: |
+          git add videre.html
+          if git diff --cached --quiet; then
+            echo "No changes; nothing to publish."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Update videre.html from the Videre API"
+            git pull --rebase origin main
+            git push
+          fi
